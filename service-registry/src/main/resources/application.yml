@@ -1,0 +1,12 @@
+server:
+  port: 8761 # default port
+
+# Eureka server configuration
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+      # Both are false, reason its not going to register to server as it is eureka server
+    # in microservices like user-service and department-service we need to provide both above properties and
+      # there they will be true
+

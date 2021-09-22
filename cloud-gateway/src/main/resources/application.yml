@@ -1,0 +1,74 @@
+server:
+  port: 9191 # our department service is at 9001 userservice is at 9002, from now onwards, All our requests will traverse through 9191
+
+
+# Next we have to do routing configuration,
+# All urls having pattern /users should be redirected to user-service microservice
+# Similarly, All urls having pattern /departments will be redirected to department-service
+
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:  # contains list routes
+        - id: USER-SERVICE
+          uri: lb://USER-SERVICE # lb is load balance // Application name
+          predicates:  # path  information
+            - Path=/users/** # anything started with /users/
+          filters:   # filter are added to call userServiceFallBack method if it takes to long
+            - name: CircuitBreaker
+              args:
+                - name: USER-SERVICE
+                  fallbackuri: forward:/userServiceFallBack
+        - id: DEPARTMENT-SERVICE
+          uri: lb://DEPARTMENT-SERVICE
+          predicates:
+            - Path=/departments/** # anything started with /departments/
+          filters:  # filter are added to call departmentServiceFallBack method if it takes to long
+            - name: CircuitBreaker
+              args:
+                - name: DEPARTMENT-SERVICE
+                  fallbackuri: forward:/departmentServiceFallBack
+
+# Next,  we will add hystrix configuration, here we are saying to call callback method
+# after 4s, or in simple words if user will not get response within 4sec my request will be
+# forwarded to either department service fallback method or user service fallback method.
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+
+# Added configuraiton for actuators, we can use this information in our hystrix dashboard,
+# Next we will create another application for hystrix dashboard
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
+
+
+# Eureka client configuration
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost # we are running locally, if you are running on production, you need to provide production hostname
+
+#  // ---------------------------------------------------------------------------------------------//
+
+ # Next, we will implement circuit breaker. it will identify which of the services are not running and it will run the
+ # fallback methods available and it will notify user that this service is not working. We will implement hystrix libraries.
+ # and we will implement hystrix dashboard, so that we can identify which of the services are running and which aren't.
+ # we will do all this in API gateway.
+
+ # first we will add hystrix dependencies

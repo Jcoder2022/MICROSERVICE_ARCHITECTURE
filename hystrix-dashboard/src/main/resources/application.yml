@@ -1,0 +1,27 @@
+server:
+  port: 9295
+
+# let us give application name
+
+spring:
+  application:
+    name: HYSTRIX-DASHBOARD
+# next in main class we will enable hystrix dashboard
+
+# hystrix dashboard configuration
+# this will allow all the proxy stream in the hystrix dashboard that's why * is added here
+hystrix:
+  dashboard:
+    proxy-stream-allow-list: "*"
+
+
+# Eureka client configuration
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost # we are running locally, if you are running on production, you need to provide production hostname
+
